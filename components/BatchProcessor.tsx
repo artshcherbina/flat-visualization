@@ -1,5 +1,5 @@
 import JSZip from 'jszip';
-import { AlertCircle, CheckCircle, Download, FileText, Hash, Loader2, Package, Play, RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { AlertCircle, CheckCircle, Download, FileText, Hash, Image, Loader2, Package, Play, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import Papa from 'papaparse';
 import React, { useRef, useState } from 'react';
 import { generateImagePrompts, generateRealEstateImage } from '../services/geminiService';
@@ -18,6 +18,7 @@ export const BatchProcessor: React.FC = () => {
   const [isZipping, setIsZipping] = useState(false);
   const [overallProgress, setOverallProgress] = useState(0);
   const [limit, setLimit] = useState<number>(0);
+  const [imageCount, setImageCount] = useState<number>(5); // Number of images per property
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -84,7 +85,7 @@ export const BatchProcessor: React.FC = () => {
 
       try {
         // 1. Generate Prompts
-        const plans = await generateImagePrompts(item.originalDescription);
+        const plans = await generateImagePrompts(item.originalDescription, imageCount);
 
         const initialImages: GeneratedImage[] = plans.map((plan, pIdx) => ({
           id: `${item.id}-img-${pIdx}`,
@@ -306,6 +307,33 @@ export const BatchProcessor: React.FC = () => {
 
       {selectedColumn && (
         <>
+          {/* Image Count Selector */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-slate-700 mb-2 flex justify-between">
+              <span className="flex items-center gap-2">
+                <Image className="w-4 h-4 text-indigo-600" />
+                Количество изображений на объект
+              </span>
+              <span className="text-2xl font-bold text-indigo-600">{imageCount}</span>
+            </label>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-500">1</span>
+              <input
+                type="range"
+                min="1"
+                max="5"
+                value={imageCount}
+                onChange={(e) => setImageCount(parseInt(e.target.value))}
+                className="flex-grow h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+              />
+              <span className="text-xs text-slate-500">5</span>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">
+              {imageCount === 1 ? 'По одному изображению на каждый объект' : `По ${imageCount} изображения на каждый объект`}
+            </p>
+          </div>
+
+          {/* Property Count Selector */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-slate-700 mb-2 flex justify-between">
               <span>Количество объектов для обработки</span>
@@ -336,7 +364,7 @@ export const BatchProcessor: React.FC = () => {
               </div>
             </div>
             <p className="text-xs text-slate-500 mt-2">
-              Будет обработано {limit} из {csvData.length} записей (всего {limit * 5} изображений).
+              Будет обработано {limit} из {csvData.length} записей (всего {limit * imageCount} изображений).
             </p>
           </div>
 
@@ -440,7 +468,7 @@ export const BatchProcessor: React.FC = () => {
                 </div>
               </div>
               <div className="text-xs font-medium px-2 py-1 bg-slate-100 rounded-md text-slate-600">
-                {item.images.filter(i => i.status === 'success').length} / 5
+                {item.images.filter(i => i.status === 'success').length} / {item.images.length}
               </div>
             </div>
 
