@@ -1,20 +1,21 @@
-import React, { useState, useCallback } from 'react';
-import { Wand2 } from 'lucide-react';
+import { Image, Wand2 } from 'lucide-react';
+import React, { useCallback, useState } from 'react';
 
 interface InputSectionProps {
-  onGenerate: (description: string) => void;
+  onGenerate: (description: string, imageCount: number) => void;
   isProcessing: boolean;
 }
 
 export const InputSection: React.FC<InputSectionProps> = ({ onGenerate, isProcessing }) => {
   const [text, setText] = useState('');
+  const [imageCount, setImageCount] = useState(5);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (text.trim()) {
-      onGenerate(text);
+      onGenerate(text, imageCount);
     }
-  }, [text, onGenerate]);
+  }, [text, imageCount, onGenerate]);
 
   const handleExampleClick = (example: string) => {
     setText(example);
@@ -32,7 +33,7 @@ export const InputSection: React.FC<InputSectionProps> = ({ onGenerate, isProces
         Создайте визуализацию вашей мечты
       </h2>
       <p className="text-lg text-slate-600 mb-8">
-        Опишите квартиру, и ИИ создаст 5 уникальных изображений: интерьер, экстерьер и детали.
+        Опишите квартиру, и ИИ создаст уникальные изображения: интерьер, экстерьер и детали.
       </p>
 
       <form onSubmit={handleSubmit} className="relative group">
@@ -63,6 +64,33 @@ export const InputSection: React.FC<InputSectionProps> = ({ onGenerate, isProces
           </button>
         </div>
       </form>
+
+      {/* Image Count Selector */}
+      <div className="mt-6 bg-white rounded-xl shadow-sm border border-slate-200 p-4 max-w-md mx-auto">
+        <div className="flex items-center justify-between mb-3">
+          <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+            <Image className="w-4 h-4 text-indigo-600" />
+            Количество изображений
+          </label>
+          <span className="text-2xl font-bold text-indigo-600">{imageCount}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-slate-500">1</span>
+          <input
+            type="range"
+            min="1"
+            max="5"
+            value={imageCount}
+            onChange={(e) => setImageCount(parseInt(e.target.value))}
+            disabled={isProcessing}
+            className="flex-grow h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 disabled:opacity-50"
+          />
+          <span className="text-xs text-slate-500">5</span>
+        </div>
+        <p className="text-xs text-slate-500 mt-2 text-center">
+          {imageCount === 1 ? 'Одно изображение (быстрее)' : `${imageCount} изображения`}
+        </p>
+      </div>
 
       <div className="mt-6 flex flex-wrap justify-center gap-2 text-sm">
         <span className="text-slate-500">Попробуйте:</span>
